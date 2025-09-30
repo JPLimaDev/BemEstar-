@@ -64,26 +64,6 @@ export default function HomeScreen() {
         </View>
       </View>
     </ImageBackground>
-       {/*Rodapé - Bottom Navigation*/}   
-      <View style={styles.iconMenuWrapper}>
-          <View style={styles.iconMenu}>
-            <Pressable style={styles.iconButton}>
-              <Ionicons name="home" size={28} color="#2C3E50" />
-            </Pressable>
-            <Pressable style={styles.iconButton}>
-              <Ionicons name="add-circle" size={28} color="#2C3E50" />
-            </Pressable>
-            <Pressable style={styles.iconButton}>
-              <Ionicons name="airplane" size={28} color="#2C3E50" />
-            </Pressable>
-            <Pressable style={styles.iconButton}>
-              <Ionicons name="car" size={28} color="#2C3E50" />
-            </Pressable>
-            <Pressable style={styles.iconButton}>
-              <Ionicons name="settings" size={28} color="#2C3E50" />
-            </Pressable>
-          </View>
-      </View>
     </View>
   )
 }

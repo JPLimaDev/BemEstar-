@@ -48,7 +48,7 @@ export default function RegisterUserScreen() {
                 
                 <TextInput
                   style={styles.input}
-                  placeholder="Nome"
+                  placeholder="Name"
                   onChangeText={handleChange('name')}
                   onBlur={handleBlur('name')}
                   value={values.name}
@@ -73,7 +73,7 @@ export default function RegisterUserScreen() {
                 <View style={styles.passwordContainer}>
                   <TextInput
                     style={[styles.input, { flex: 1 }]}
-                    placeholder="Senha"
+                    placeholder="Password"
                     secureTextEntry={hidePassword}
                     onChangeText={handleChange('password')}
                     onBlur={handleBlur('password')}
@@ -98,7 +98,7 @@ export default function RegisterUserScreen() {
                 <View style={styles.passwordContainer}>
                   <TextInput
                     style={[styles.input, { flex: 1 }]}
-                    placeholder="Confirmar Senha"
+                    placeholder="Confirm Password"
                     secureTextEntry={hideConfirmPassword}
                     onChangeText={handleChange('confirmPassword')}
                     onBlur={handleBlur('confirmPassword')}
@@ -121,7 +121,7 @@ export default function RegisterUserScreen() {
 
                 
                 <Pressable onPress={handleSubmit as any} style={styles.buttonEnter}>
-                  <Text style={styles.textEnter}>Cadastrar</Text>
+                  <Text style={styles.textEnter}>Register</Text>
                 </Pressable>
 
                
@@ -129,7 +129,7 @@ export default function RegisterUserScreen() {
                   onPress={() => router.back()}
                   style={styles.buttonRegister}
                 >
-                  <Text style={styles.textRegister}>Voltar ao Login</Text>
+                  <Text style={styles.textRegister}>Return to Login</Text>
                 </Pressable>
               </>
             )}
