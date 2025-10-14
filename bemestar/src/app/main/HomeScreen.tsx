@@ -1,5 +1,5 @@
 import React from "react"
-import {View,Text,StyleSheet,Pressable,ImageBackground,Image, SafeAreaView} from "react-native"
+import {View,Text,StyleSheet,Pressable,ImageBackground,Image} from "react-native"
 import { Ionicons } from "@expo/vector-icons"
 
 export default function HomeScreen() {
