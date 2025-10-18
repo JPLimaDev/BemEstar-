@@ -27,7 +27,7 @@ export default function DiarioScreen() {
       return
     }
     
-    // ⚠️ Futuramente: Adicionar banco de dados para salvar os dados fornecidos.
+    //  Futuramente: Adicionar banco de dados para salvar os dados fornecidos.
     Alert.alert(
       "Diário Salvo!",
       `Humor: ${humorSelecionado.name}\nRegistro: ${textoDiario.substring(0, 50)}...`,
