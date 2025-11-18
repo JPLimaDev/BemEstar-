@@ -6,7 +6,9 @@ import * as Yup from 'yup'
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { useUserStore, UserProfile } from '../../store/userStore' 
 import HomeScreen from '../main/HomeScreen'
-
+import { auth, db } from './../../config/firebase';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth'
+import { addDoc, collection, doc, setDoc } from 'firebase/firestore'
 
 const yupValidation = Yup.object().shape({
     
@@ -43,19 +45,25 @@ export default function RegisterUserScreen() {
                     <Formik
                         initialValues={{ name: '', email: '', password: '', confirmPassword: '' }}
                         validationSchema={yupValidation}
-                        onSubmit={(values, { resetForm }) => {
-                            // 2. SALVA OS DADOS NO ZUSTAND
-                            const userData: UserProfile = {
-                                name: values.name,
-                                email: values.email,
-                            };
-                            userLogin(userData); // Atualiza o estado global para logado!
-
-                            Alert.alert('Cadastro realizado', `Bem-vindo, ${values.name}!`)
-                            resetForm()
+                        onSubmit={async (values, { resetForm }) => {
                             
-                            // Navega para a tela principal (main app)
-                            router.replace('/main/HomeScreen') 
+                          try {
+                              
+                              const response = await createUserWithEmailAndPassword(auth, values.email, values.password);
+                              const document = doc(db, 'usuarios', response.user.uid);
+                              setDoc(document, {
+                                  name: values.name,
+                                  email: values.email
+                              });
+
+                              Alert.alert('Cadastro realizado', `Bem-vindo, ${values.name}!`)
+                              resetForm()
+                              
+                              // Navega para a tela principal (main app)
+                              router.replace('/main/HomeScreen') 
+                          } catch (error:any) {
+                            Alert.alert('Erro no cadastro', error.message);
+                          }
                         }}
                     >
                         {({ handleChange, handleBlur, handleSubmit, values, errors, touched }) => (

@@ -1,8 +1,13 @@
-import React from "react"
+import React, { useCallback, useEffect, useState } from "react"
 import {View,Text,StyleSheet,Pressable,ImageBackground,Image} from "react-native"
 import { Ionicons } from "@expo/vector-icons"
+import { auth, db } from "../../config/firebase";
+import { doc, getDoc } from "firebase/firestore";
+import { useFocusEffect } from "expo-router";
 
 export default function HomeScreen() {
+  
+  const [ user, setUser ] = useState({name: '', avatar:'https://i.pravatar.cc/100'});
   const cards = [
   { 
     name: "Meditação",
@@ -21,7 +26,20 @@ export default function HomeScreen() {
     image: "https://plus.unsplash.com/premium_photo-1661397087554-2774b7e7332f?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8U29ub3xlbnwwfHwwfHx8MA%3D%3D",
   },
 ]
-
+  // ----------------------------------------------
+  useFocusEffect(useCallback(() => {
+    async function getUser() {
+      const userID = auth.currentUser?.uid;
+      if (userID) {
+        const snap = await getDoc(doc(db, 'usuarios', userID)); 
+        if (snap.exists()) {
+          setUser(snap.data());
+        }
+      }
+    }
+    getUser();
+  }, []));
+  //----------------------------------------------
   return (
     <View style={{flex: 1}}>
     <ImageBackground
@@ -34,7 +52,7 @@ export default function HomeScreen() {
       <View style={styles.container}>
         
         <View style={styles.header}>
-          <Text style={styles.greeting}>Olá, João 👋</Text>
+          <Text style={styles.greeting}>Olá, {user.name} 👋</Text>
           <Pressable>
             <Image
               source={{ uri: "https://i.pravatar.cc/100" }}

@@ -5,6 +5,7 @@ import { Image } from 'expo-image'
 import { useRouter } from 'expo-router'
 import * as Location from 'expo-location'
 import * as Constants from 'expo-constants'
+import { auth } from '../../config/firebase'
 
 
 interface UserProfile {
@@ -89,6 +90,7 @@ const ProfileScreen: React.FC = () => {
         text: "Sair", 
         style: "destructive", 
         onPress: () => {
+          auth.signOut();
           console.log("Usuário saiu!") 
           router.replace('/')
         } 
