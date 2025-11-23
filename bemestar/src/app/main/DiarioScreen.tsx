@@ -1,6 +1,8 @@
 import React, { useState } from 'react'
 import { View, Text, StyleSheet, TextInput, ScrollView, Pressable, Alert } from 'react-native'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore'
+import { db, auth } from './../../config/firebase'
 
 interface Humor {
     name: string
@@ -21,24 +23,37 @@ export default function DiarioScreen() {
     { name: 'Estressado', icone: 'emoticon-frown', color: '#F44336' }, 
   ]
 
-  const salvarRegistro = () => {
+  const salvarRegistro = async () => {
+    const usuario = auth.currentUser //Dificuldade ao pegar usuario está null
+
+
     if (!humorSelecionado || textoDiario.trim() === '') {
       Alert.alert("Campos Obrigatórios", "Por favor, selecione seu humor e escreva seu registro antes de salvar.");
       return
     }
     
-    //  Futuramente: Adicionar banco de dados para salvar os dados fornecidos.
-    Alert.alert(
-      "Diário Salvo!",
-      `Humor: ${humorSelecionado.name}\nRegistro: ${textoDiario.substring(0, 50)}...`,
-      [
-        { text: "OK", onPress: () => {
-            setTextoDiario('')
-            setHumorSelecionado(null)
-        }}
-      ]
-    );
-  };
+   try{
+    const dadosRegistro = {
+      humor: humorSelecionado.name,
+      icone: humorSelecionado.icone,
+      registroTexto: textoDiario,
+      dataRegistro: serverTimestamp(),
+      userId: usuario?.uid
+    }
+
+    await addDoc(collection(db, "registrosHumor"), dadosRegistro)
+
+    Alert.alert("Sucesso!", "Seu registro de humor foi salvo")
+
+    setTextoDiario('')
+    setHumorSelecionado(null)
+
+   }
+   catch (error){
+      console.error("Erro ao adicionar documento: ", error)
+      Alert.alert("Erro", "Não foi possível salvar o registro. Verifique sua conexão ou tente novamente.")
+   }
+  }
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>

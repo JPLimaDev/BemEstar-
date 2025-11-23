@@ -2,6 +2,8 @@ import React, { useState } from 'react'
 import { View, Text, FlatList, Pressable, StyleSheet, Modal, TextInput, Button, Alert} from 'react-native'
 import { Feather } from '@expo/vector-icons'
 import * as Haptics from 'expo-haptics' 
+import { db, auth } from '../../config/firebase'
+import { collection, addDoc, deleteDoc, doc, updateDoc , serverTimestamp } from 'firebase/firestore'
 
 interface Goal{
   id: string
@@ -54,15 +56,11 @@ const GoalItem: React.FC<GoalItemProps> = ({ goal, onToggle, onDelete}) => (
   </View>
 )
 
-const initialGoals: Goal[] = [
- { id: '1', title: 'Beber 2 litros de água', completed: false, type: 'diaria' },
- { id: '2', title: 'Fazer 30 minutos de exercício', completed: true, type: 'diaria' },
- { id: '3', title: 'Meditar por 15 minutos (Meta Semanal)', completed: false, type: 'semanal'}
-]
+
 
 const GoalsScreen: React.FC = () => {
 
- const [goals, setGoals] = useState<Goal[]>(initialGoals)
+ const [goals, setGoals] = useState<Goal[]>([])
  const [modalVisible, setModalVisible] = useState<boolean>(false)
  const [newGoalTitle, setNewGoalTitle] = useState<string>('')
 
@@ -85,7 +83,9 @@ const GoalsScreen: React.FC = () => {
 
 
 
- const addGoal = () => {
+ const addGoal = async () => {
+  const usuario = auth.currentUser
+
   if (newGoalTitle.trim().length === 0) {
       triggerHapticFeedback('warning')
    Alert.alert('Erro', 'O título da meta não pode estar vazio.')
@@ -98,29 +98,98 @@ const GoalsScreen: React.FC = () => {
    completed: false,
    type: 'diaria',
   }
-  setGoals([...goals, newGoal])
-  setNewGoalTitle('')
-  setModalVisible(false)
+
+  try{
+    const goalDatatoSave = {
+      title: newGoal.title,
+      completed: newGoal.completed,
+      type: newGoal.type,
+      userId: usuario?.uid,
+      createdAt: serverTimestamp()
+    }
+
+    const docRef = await addDoc(collection(db, "metas"), goalDatatoSave)
+
+    setGoals(prevGoals => [
+             ...prevGoals, 
+             {...newGoal, id: docRef.id} 
+        ]);
+
+
+    setNewGoalTitle('')
+    setModalVisible(false)
     triggerHapticFeedback('success') 
+
+     Alert.alert('Sucesso', 'Meta adicionada com sucesso do servidor.')
+
+  }
+  catch (error){
+    console.error("Erro ao adicionar meta:", error)
+    Alert.alert('Erro', 'Não foi possível salvar a meta no servidor.')
+    triggerHapticFeedback('warning')
+  }
+
+  
  }
  
- const toggleGoal = (id: string): void => {
-    const isNowCompleted = !goals.find(g => g.id === id)?.completed
-  setGoals(
-   goals.map(goal => 
-    goal.id === id ? { ...goal, completed: !goal.completed } : goal
-   )
-  )
-    if (isNowCompleted) {
-        triggerHapticFeedback('success')
-    } else {
-        triggerHapticFeedback('light')
-    }
- }
+ const toggleGoal = async (id: string): Promise<void> => {
+    
+    const goalToUpdate = goals.find(g => g.id === id);
+    if (!goalToUpdate) return;
+    
+   
+    const isNowCompleted = !goalToUpdate.completed; 
+    
+    try {
+        
+        const metaDocRef = doc(db, "metas", id);
+        
+        
+        await updateDoc(metaDocRef, {
+            completed: isNowCompleted
+        });
+        
+        
+        setGoals(
+            goals.map(goal => 
+                goal.id === id ? { ...goal, completed: isNowCompleted } : goal
+            )
+        );
 
- const deleteGoal = (id: string): void => {
-  setGoals(goals.filter(goal => goal.id !== id))
+       
+        if (isNowCompleted) {
+            triggerHapticFeedback('success');
+        } else {
+            triggerHapticFeedback('light');
+        }
+
+    } catch (error) {
+        console.error("Erro ao atualizar meta:", error);
+        Alert.alert('Erro', 'Não foi possível atualizar o status da meta no servidor.');
+        triggerHapticFeedback('warning');
+    }
+}
+
+ const deleteGoal = async (id: string): Promise<void> => {
+  try{
+    const metaDocRef = doc(db, "metas", id)
+
+    await deleteDoc(metaDocRef)
+
+    setGoals(goals.filter(goal => goal.id !== id))
     triggerHapticFeedback('light')
+
+    Alert.alert('Sucesso', 'Meta excluída com sucesso do servidor.')
+
+  }
+  catch (error){
+      console.error("Erro ao excluir meta:", error)
+      Alert.alert('Erro', 'Não foi possível excluir a meta no servidor.')
+      triggerHapticFeedback('warning')
+  }
+  
+  
+  
  }
 
 

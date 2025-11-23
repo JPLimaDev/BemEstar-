@@ -4,7 +4,6 @@ import { Feather } from '@expo/vector-icons'
 import { Image } from 'expo-image'
 import { useRouter } from 'expo-router'
 import * as Location from 'expo-location'
-import * as Constants from 'expo-constants'
 import { auth } from '../../config/firebase'
 
 
@@ -84,15 +83,26 @@ const ProfileScreen: React.FC = () => {
   }, [])
 
   const handleLogout = () => {
+    const usuario = auth.currentUser
     Alert.alert("Sair", "Você tem certeza que deseja sair?", [
       { text: "Cancelar", style: "cancel" },
       { 
         text: "Sair", 
         style: "destructive", 
-        onPress: () => {
-          auth.signOut();
-          console.log("Usuário saiu!") 
-          router.replace('/')
+        onPress: async () => {
+          try {
+                // ⭐️ 2. CORREÇÃO CRÍTICA: Chamar signOut() na instância 'auth' ⭐️
+                await auth.signOut();
+                
+                console.log("Logoff bem-sucedido. Redirecionando..."); 
+                
+                // 3. Redirecionar para a tela de login/home
+                router.replace('/')
+                
+            } catch (error) {
+                console.error("Erro ao realizar o logoff:", error);
+                Alert.alert("Erro", "Não foi possível sair do sistema. Tente novamente.");
+            }
         } 
       }
     ])
