@@ -4,14 +4,15 @@ import { Feather } from '@expo/vector-icons'
 import { Image } from 'expo-image'
 import { useRouter } from 'expo-router'
 import * as Location from 'expo-location'
-import { auth } from '../../config/firebase'
-
+import { auth, db } from '../../config/firebase'
+import { addDoc, collection, doc, getDoc } from 'firebase/firestore'
 
 interface UserProfile {
   name: string
   email: string
   avatarUrl: string
   goalsCompleted: number
+  activeDays: number
 }
 
 
@@ -41,30 +42,51 @@ const MenuItem: React.FC<MenuItemProps> = ({ iconName, title, onPress, isDestruc
   </Pressable>
 )
 
-
-const MOCKED_USER: UserProfile = {
-  name: "João Silva",
-  email: "joao.silva@exemplo.com",
-  avatarUrl: "https://i.pravatar.cc/150?img=68",
-  goalsCompleted: 15,
-}
-
 const ProfileScreen: React.FC = () => {
   const router = useRouter()
   const [locationName, setLocationName] = useState<string>('Seu Local')
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
-  
+  const [userData, setUserData] = useState<UserProfile | null>(null)
+
   useEffect(() => {
     (async () => {
+     
+      const loadUserData = async () => {
+        try {
+          const user = auth.currentUser
+          if (!user) return
+
+          const docRef = doc(db, 'usuarios', user.uid)
+          const snapshot = await getDoc(docRef)
+
+          if (snapshot.exists()) {
+            const data = snapshot.data()
+
+            setUserData({
+              name: data.name,
+              email: data.email,
+              avatarUrl: data.avatarUrl || "https://i.pravatar.cc/150",
+              goalsCompleted: data.goalsCompleted || 0,
+              activeDays: data.activeDays || 0,
+            })
+          }
+        } catch (err) {
+          console.log("Erro ao carregar dados do usuário:", err)
+        }
+      }
+
+      await loadUserData()
+
+      // ============================
+      // 🔹 2. Localização do usuário
+      // ============================
       let { status } = await Location.requestForegroundPermissionsAsync()
-      
       if (status !== 'granted') {
         setErrorMsg('Permissão negada')
         return
       }
-      
+
       let location = await Location.getCurrentPositionAsync({})
-      
       let geocode = await Location.reverseGeocodeAsync({
         latitude: location.coords.latitude,
         longitude: location.coords.longitude,
@@ -72,16 +94,26 @@ const ProfileScreen: React.FC = () => {
 
       if (geocode && geocode.length > 0) {
         const city = geocode[0].city || geocode[0].subregion
-        if (city) {
-          setLocationName(city)
-        } else {
-          setLocationName('Seu Local')
-        }
+        setLocationName(city || 'Seu Local')
       }
-
     })()
   }, [])
 
+  const MenuItem = ({ iconName, title, onPress, isDestructive = false }: any) => (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.menuItem,
+        { backgroundColor: pressed ? '#E0E0E0' : '#FFFFFF' }
+      ]}
+    >
+      <View style={styles.menuItemContent}>
+        <Feather name={iconName} size={20} color={isDestructive ? '#F44336' : '#333'} />
+        <Text style={[styles.menuTitle, isDestructive && styles.destructiveText]}>{title}</Text>
+      </View>
+      <Feather name="chevron-right" size={20} color="#CCC" />
+    </Pressable>
+  )
   const handleLogout = () => {
     const usuario = auth.currentUser
     Alert.alert("Sair", "Você tem certeza que deseja sair?", [
@@ -122,7 +154,7 @@ const ProfileScreen: React.FC = () => {
         >
           <Image 
             style={styles.avatar}
-            source={{ uri: MOCKED_USER.avatarUrl }}
+            source={{ uri: userData?.avatarUrl }}
             contentFit="cover"
           />
           <View style={styles.editIconContainer}>
@@ -131,17 +163,17 @@ const ProfileScreen: React.FC = () => {
         </Pressable>
 
       
-        <Text style={styles.userName}>{MOCKED_USER.name}</Text>
-        <Text style={styles.userEmail}>{MOCKED_USER.email}</Text>
+        <Text style={styles.userName}>{userData?.name}</Text>
+        <Text style={styles.userEmail}>{userData?.email}</Text>
       </View>
 
       <View style={styles.statsContainer}>
         <View style={styles.statBox}>
-          <Text style={styles.statNumber}>{MOCKED_USER.goalsCompleted}</Text>
+          <Text style={styles.statNumber}>{userData?.goalsCompleted}</Text>
           <Text style={styles.statLabel}>Metas Concluídas</Text>
         </View>
         <View style={styles.statBox}>
-          <Text style={styles.statNumber}>30</Text>
+          <Text style={styles.statNumber}>{userData?.activeDays ?? 0}</Text>
           <Text style={styles.statLabel}>Dias Ativos</Text>
         </View>
       </View>

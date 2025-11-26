@@ -1,13 +1,16 @@
-import React, { useCallback, useEffect, useState } from "react"
+import React, { use, useCallback, useEffect, useState } from "react"
 import {View,Text,StyleSheet,Pressable,ImageBackground,Image} from "react-native"
 import { Ionicons } from "@expo/vector-icons"
 import { auth, db } from "../../config/firebase";
-import { doc, getDoc } from "firebase/firestore";
-import { useFocusEffect } from "expo-router";
+import { doc, getDoc, addDoc } from "firebase/firestore";
+import { useFocusEffect , useRouter } from "expo-router";
+import { collection, getDocs } from "firebase/firestore";
 
 export default function HomeScreen() {
   
   const [ user, setUser ] = useState({name: '', avatar:'https://i.pravatar.cc/100'});
+  const router = useRouter()
+  const [storeItems, setStoreItems] = useState([])
   const cards = [
   { 
     name: "Meditação",
@@ -66,8 +69,9 @@ export default function HomeScreen() {
           <Text style={styles.bannerText}>
             Respire fundo. Hoje é um bom dia para cuidar de você 🌿
           </Text>
-          <Pressable style={styles.bannerButton}>
-            <Text style={styles.bannerButtonText}>Iniciar Agora</Text>
+          <Pressable style={styles.bannerButton}
+            onPress={() => router.push("/shopping/compras")}>
+            <Text style={styles.bannerButtonText}>Ir Para Loja 🛒</Text>
           </Pressable>
         </View>
 

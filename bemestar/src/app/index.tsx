@@ -4,7 +4,8 @@ import { Link, router } from 'expo-router'
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { Formik } from 'formik'
 import * as Yup from 'yup'
-
+import { auth , db } from '../config/firebase'
+import { signInWithEmailAndPassword } from 'firebase/auth'
 
 export default function LoginScreen() {
   const [hidePassword, setHidePassword] = React.useState(true)
@@ -35,10 +36,20 @@ export default function LoginScreen() {
           <Formik
             initialValues = {{email: '', password: ''}}
             validationSchema = {yupValidation}
-            onSubmit = {(values, { resetForm }) => {
-               Alert.alert('Login realizado', `Email: ${values.email}`) 
-               resetForm()
-               router.replace('/main/HomeScreen')
+            onSubmit = {async (values, { resetForm }) => {
+               try {
+                
+                await signInWithEmailAndPassword(auth, values.email, values.password);
+
+                Alert.alert('Login realizado', `Email: ${values.email}`);
+                resetForm();
+
+                // Redireciona para a Home
+                router.replace('/main/HomeScreen');
+
+              } catch (error: any) {
+                Alert.alert('Erro ao fazer login', error.message);
+              }
             }} >
             {({ handleChange, handleBlur, handleSubmit, values, errors, touched }) => (
               <>
